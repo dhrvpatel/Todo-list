@@ -1,9 +1,33 @@
+/*
+  * style.css
+  * This file conatins tag elements to add a new todo item for this project
+  * Assignment By:
+  *  -Michael Sajuyigbe: 7434350
+  *  -Dhruvkumar Patel: 7453756
+*/
+
 body {
-  padding: 50px;
-  /* font: 14px "Lucida Grande", Helvetica, Arial, sans-serif; */
-  font-family: roboto;
+    padding-top: 70px; 
+    overflow:hidden; 
+    overflow-y:scroll;
 }
 
-a {
-  color: #00B7FF;
+#feedback{
+    color: #F35353;
+    font-weight: bold;  
+    padding-left: 25px;
+    display: none;  
+}
+
+.hero-spacer {
+    margin-top: 50px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.hero-feature {
+    margin-bottom: 30px;
+}
+
+footer {
+    margin: 50px 0;
 }

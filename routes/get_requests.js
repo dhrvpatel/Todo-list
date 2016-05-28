@@ -1,6 +1,15 @@
+/*
+* Get_requests.js
+* This file contains get methods and implementations for this project
+
+* Assignment By:
+*  -Michael Sajuyigbe: 7434350
+*  -Dhruvkumar Patel: 7453756
+*/
 var express = require('express');
 var router = express.Router();
 var mongodb = require('mongodb');
+
 
 
 // Variable declaration
@@ -15,14 +24,30 @@ var MongoClient = mongodb.MongoClient;
 var url = 'mongodb://localhost:27017/assignment_db';
 
 
-/******************************* GET METHODS *******************************/
 
 /* 
 Route: index
 GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'ToDo Application' });
 });
+
+
+/* Route: newuser
+Routing get request for '/newuser' link route */
+router.get('/newuser',function (req,res) {
+  res.render('signup', {title: 'User Registration'});
+});
+
+/* Route: Json_data
+Routing Get request for '/get_json' link route */
+router.get('/get_json', function(req, res) {
+        
+  collection_name = "todo_list";
+  get_json_data_from_db(req, res);
+  
+});
+
 
 /* Route: thelist
 Get list from DB
@@ -54,17 +79,6 @@ router.get('/thelist', function(req,res) {
   })
 });
 
-/* Route: todo_list
-Routing get request for '/todo_list' link route */
-router.get('/todo_list',function (req,res) {
-  res.render('new_todo', {title: 'Todo List', id : _id});
-});
-
-/* Route: newuser
-Routing get request for '/newuser' link route */
-router.get('/newuser',function (req,res) {
-  res.render('newuser', {title: 'Add User'});
-});
 
 /* Route: users_list
 Routing get request for '/users_list' link route */
@@ -82,7 +96,10 @@ router.get('/final',function (req,res) {
       var collection = db.collection('todo_list');
       //var collection = db.collection('users');
       
-collection.aggregate([{
+collection.aggregate([
+  {$sort: {_id: -1}},
+  {$limit: 1},
+  {
   $lookup:{
     from: "users",
     localField: "_id",
@@ -90,14 +107,7 @@ collection.aggregate([{
     as: "other"    
    }
   }],function(err, result){
-    //console.log(" Rice "+result.length);
-    //console.dir(result);
-  //});
-      
-      
-      
-      //collection.find({}).toArray(function(err, result){
-
+    
         if (err){
           res.send(err);
         }
@@ -115,56 +125,11 @@ collection.aggregate([{
     }
   })
   
-  //res.render('users_list', {title: 'users list'});
-
 });
 
 
-
-/******************************* END OF GET METHODS *******************************/
-
-
-/******************************* POST METHODS *******************************/
-
-/* Route: Add_list
-Routing post request for '/add_list' link route */
-router.post('/add_list', function(req, res) {
-
-  /* Json data */
-  db_data = { 
-    _id: req.body._id, 
-    title: req.body.title, 
-    location:req.body.location, 
-    notes:req.body.notes, 
-  };
-        
-  redirect_url = "final";
-  collection_name = "todo_list";
-  insert_into_db(req, res);
-  
-});
-
-/* Route: Add User
-Routing post request for '/adduser' link route */
-router.post('/adduser', function(req, res) {
-
-  // JSON data 
-  db_data = { 
-    first_name: req.body.first_name, 
-    Last_name:req.body.last_name 
-  };
-        
-  redirect_url = "todo_list";
-  collection_name = "users";
-  insert_into_db(req, res);
-  
-});
-
-/******************************* END OF POST REQUEST *******************************/
-
-
-/******************************* INSERT TO DB FUNCTION *******************************/
-function insert_into_db(req, res)
+/******************************* Get Json_data FROM DB FUNCTION *******************************/
+function get_json_data_from_db(req, res)
 {
   //MongoDB connection function
   MongoClient.connect(url, function(err,db) {  
@@ -177,25 +142,29 @@ function insert_into_db(req, res)
       //Initialize Collection
       var collection = db.collection(collection_name);
       //Insert Statement into mongodb
-      collection.insert([db_data], function (err,result) {
-      //_id of last insert record
-      _id = result.ops[0]._id;
-        //console.log();
-        
+      collection.aggregate({
+    $lookup:{
+      from: "users",
+      localField: "user_id",
+      foreignField: "_id",
+      as: "other"    
+    }
+  }, function (err,result) {
         
         if(err){
           console.log(err);
         }
         else{
-         res.redirect(redirect_url);
+          var data = JSON.stringify(result)
+          //console.log(data);
+          res.json(result[0]);
         }
         db.close();
-      });
+      })
    }    
   });
    
 }
-/******************************* END OF DB INSERT FUNCTION *******************************/
-
+/******************************* END OF GET Json_data FUNCTION *******************************/
 
 module.exports = router;
